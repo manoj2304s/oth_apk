@@ -147,17 +147,16 @@ class _LocationPageState extends State<LocationPage> {
               (Route<dynamic> route) => false);
         } else {
           await time.stopWatchTimer.dispose();
-          var extTime = extraTime.extraTime;
-          var finalTime = time.stopWatchTimer.rawTime.value + extTime;
-          var value = StopWatchTimer.getDisplayTime(finalTime,
-              hours: true, milliSecond: true);
-          if (kDebugMode) {
-            print(time.stopWatchTimer.rawTime.value);
-            StopWatchTimer.getDisplayTime(finalTime,
-                hours: true, milliSecond: true);
-          }
-          UpdateUsers(field: 'timer', value: value.toString())
-              .then((value) => {
+      var finalTime = time.stopWatchTimer.rawTime.value;
+      var value = StopWatchTimer.getDisplayTime(finalTime,
+        hours: true, milliSecond: true);
+      if (kDebugMode) {
+      print(time.stopWatchTimer.rawTime.value);
+      StopWatchTimer.getDisplayTime(finalTime,
+        hours: true, milliSecond: true);
+      }
+      UpdateUsers(field: 'timer', value: value.toString())
+        .then((value) => {
                     this.controller!.pauseCamera(),
                     // controller.stopCamera(),
                     Navigator.of(context).pushAndRemoveUntil(

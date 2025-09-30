@@ -30,7 +30,7 @@ class Question extends StatefulWidget {
   State<Question> createState() => _QuestionState();
 }
 
-class _QuestionState extends State<Question> {
+class _QuestionState extends State<Question> with WidgetsBindingObserver {
   final IndexCounter c = Get.put(IndexCounter());
   final RandomNumberGenerator randomList = Get.put(RandomNumberGenerator());
   final ExtraTimeCounter extraTime = Get.put(ExtraTimeCounter());
@@ -43,6 +43,48 @@ class _QuestionState extends State<Question> {
   late int totalQuestionsLength;
   bool isQuestionLoaded = false;
 
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _restoreTimerFromDatabase();
+    getCurrentQuestion();
+    time.stopWatchTimer.onExecute.add(StopWatchExecute.start);
+  }
+
+  Future<void> _restoreTimerFromDatabase() async {
+    final savedTime = await fetchSavedQuestionTime();
+    if (savedTime != null) {
+      // Parse savedTime (format: HH:MM:SS) and set timer accordingly
+      final parts = savedTime.split(':');
+      if (parts.length >= 3) {
+        final hours = int.tryParse(parts[0]) ?? 0;
+        final minutes = int.tryParse(parts[1]) ?? 0;
+        final seconds = int.tryParse(parts[2]) ?? 0;
+        final totalMilliseconds =
+            ((hours * 3600) + (minutes * 60) + seconds) * 1000;
+        time.stopWatchTimer.setPresetTime(mSec: totalMilliseconds);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    // Get the current timer value
+    final value = time.stopWatchTimer.rawTime.value;
+    final displayTime = StopWatchTimer.getDisplayTime(value,
+      hours: true, minute: true, second: true, milliSecond: false);
+    saveQuestionTime(displayTime);
+    }
+  }
   var sequence = [
     [1, 5, 6, 2, 3, 4, 7, 8, 9],
     [1, 3, 2, 6, 4, 5, 8, 7, 9],
@@ -84,7 +126,7 @@ class _QuestionState extends State<Question> {
 
       await UpdateUsers(field: 'questionId', value: c.curIndex);
       try {
-        final value = StopWatchTimer().rawTime.value + extraTime.extraTime;
+        final value = time.stopWatchTimer.rawTime.value;
         final displayTime = StopWatchTimer.getDisplayTime(value,
             hours: true, minute: true, second: true, milliSecond: false);
 
@@ -139,12 +181,14 @@ class _QuestionState extends State<Question> {
       // HapticFeedback.heavyImpact();
       Vibrate.vibrate();
 
+      extraTime.handleWrongAnswerTimeout(); // Show 1-minute timeout for wrong answer
+
       lifeCount.removeLife();
       if (lifeCount.lifeCount == 0) {
         CustomAlert(
             title: "Restoring Life",
             subTitle:
-                "All Life Lost! Restoring The Lives, 10 Extra Minutes Are Added.",
+                "All Lives Lost! Lives Restored.",
             context: context);
         lifeCount.restoreLife();
       }
@@ -153,39 +197,23 @@ class _QuestionState extends State<Question> {
       });
 
       CustomSnackbarWithoutAction(
-          context: context, text: 'Wrong Answer! Try Again.');
+          context: context, text: 'Wrong Answer! 1 Minute Timeout.');
 
       if (kDebugMode) {
         print("Life Count : " + lifeCount.lifeCount.toString());
-      }
-      if (kDebugMode) {
-        print("Extra Time : " + extraTime.extraTime.toString());
       }
     }
   }
 
   onHintPressed() {
     if (!takenHint) {
-      extraTime.hintIncrement();
+      extraTime.handleHintTimeout();
     }
     takenHint = true;
     CustomAlert(
         title: "Hint",
         subTitle: currentQuestionObj[0]['hint'],
         context: context);
-
-    if (kDebugMode) {
-      print("Extra Time : " + extraTime.extraTime.toString());
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getCurrentQuestion();
-    //time.stopWatchTimer.start();
-    //time.stopWatchTimer.onChange.add(StopWatchExecute.start);
-    time.stopWatchTimer.onExecute.add(StopWatchExecute.start);
   }
 
   @override
@@ -197,9 +225,9 @@ class _QuestionState extends State<Question> {
         stream: time.stopWatchTimer.rawTime,
         initialData: time.stopWatchTimer.rawTime.value,
         builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-          final value = snapshot.data! + extraTime.extraTime;
-          final displayTime = StopWatchTimer.getDisplayTime(value,
-              hours: true, milliSecond: false);
+      final value = snapshot.data!;
+      final displayTime = StopWatchTimer.getDisplayTime(value,
+        hours: true, milliSecond: false);
 
           return Scaffold(
             extendBodyBehindAppBar: true,
