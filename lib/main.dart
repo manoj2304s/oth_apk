@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:oth_apk/screens/Login/Login.dart';
+import 'package:oth_apk/screens/Splash/animated_splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -68,10 +69,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
         title: 'OTH',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.blue,
           scaffoldBackgroundColor: const Color.fromRGBO(174, 36, 11, 0.8),
         ),
-        home: LoginScreen());
+        home: const AnimatedSplashScreen());
   }
 }

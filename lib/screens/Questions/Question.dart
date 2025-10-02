@@ -185,16 +185,23 @@ class _QuestionState extends State<Question> with WidgetsBindingObserver {
       String hint = currentQuestionObj[0]['hint'];
       
       lifeCount.setCurrentQuestion(question, hint);
-      extraTime.handleWrongAnswerTimeout(question, hint); // Show 1-minute timeout for wrong answer
-
       lifeCount.removeLife();
+      
       if (lifeCount.lifeCount == 0) {
         CustomAlert(
             title: "Restoring Life",
             subTitle:
-                "All Lives Lost! Lives Restored.",
+                "All Lives Lost! Timeout Initiated!",
             context: context);
+        // Only trigger timeout when all lives are lost
         lifeCount.restoreLife();
+      } else {
+        // Show remaining lives message
+        CustomAlert(
+            title: "Wrong Answer",
+            subTitle:
+                "Lives Remaining: ${lifeCount.lifeCount}",
+            context: context);
       }
       setState(() {
         currentLifeCount = lifeCount.lifeCount;

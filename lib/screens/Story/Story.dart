@@ -1,12 +1,33 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:oth_apk/components/CustomButton.dart';
 import 'package:oth_apk/screens/Questions/Question.dart';
 import 'package:oth_apk/services/story/story.dart';
+import 'package:oth_apk/services/audio/background_music.dart';
 
-class Story extends StatelessWidget {
+class Story extends StatefulWidget {
   const Story({Key? key}) : super(key: key);
+
+  @override
+  State<Story> createState() => _StoryState();
+}
+
+class _StoryState extends State<Story> {
+  final BackgroundMusicService _musicService = Get.put(BackgroundMusicService());
+
+  @override
+  void initState() {
+    super.initState();
+    _musicService.playBackgroundMusic();
+  }
+
+  @override
+  void dispose() {
+    _musicService.stopBackgroundMusic();
+    super.dispose();
+  }
 
   static const story = '''
 You are an ardent RCB fan, and you’ve been selected as a part of their “Fan Intelligence Unit” to solve a mystery. \n
@@ -23,6 +44,21 @@ You are an ardent RCB fan, and you’ve been selected as a part of their “Fan 
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          Obx(() => IconButton(
+            icon: Icon(
+              _musicService.isPlaying.value ? Icons.volume_up : Icons.volume_off,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              if (_musicService.isPlaying.value) {
+                _musicService.pauseBackgroundMusic();
+              } else {
+                _musicService.playBackgroundMusic();
+              }
+            },
+          )),
+        ],
         title: const Padding(
           padding: EdgeInsets.fromLTRB(12.0, 20, 12, 8),
           child: Text(
