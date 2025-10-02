@@ -10,7 +10,7 @@ class ExtraTimeCounter extends GetxController {
   static const int HINT_TIMEOUT_SECONDS = 180; // 3 minutes for hint
   static const int WRONG_ANSWER_TIMEOUT_SECONDS = 60; // 1 minute for wrong answer
 
-  showTimeout(int seconds) {
+  showTimeout(int seconds, String question, String hint, bool isHintTimeout) {
     time.stopWatchTimer.onExecute.add(StopWatchExecute.stop);
     
     Get.to(
@@ -20,21 +20,31 @@ class ExtraTimeCounter extends GetxController {
           Get.back();
           time.stopWatchTimer.onExecute.add(StopWatchExecute.start);
         },
+        question: question,
+        hint: hint,
+        isHintTimeout: isHintTimeout,
       ),
     );
   }
 
-  handleHintTimeout() {
-    showTimeout(HINT_TIMEOUT_SECONDS);
+  handleHintTimeout(String question, String hint) {
+    showTimeout(HINT_TIMEOUT_SECONDS, question, hint, true);
   }
 
-  handleWrongAnswerTimeout() {
-    showTimeout(WRONG_ANSWER_TIMEOUT_SECONDS);
+  handleWrongAnswerTimeout(String question, String hint) {
+    showTimeout(WRONG_ANSWER_TIMEOUT_SECONDS, question, hint, false);
   }
 }
 
 class LifeCountCounter extends GetxController {
   var lifeCount = 3.abs();
+  String? currentQuestion;
+  String? currentHint;
+
+  void setCurrentQuestion(String question, String hint) {
+    currentQuestion = question;
+    currentHint = hint;
+  }
 
   removeLife() {
     lifeCount--;
@@ -42,7 +52,9 @@ class LifeCountCounter extends GetxController {
 
   restoreLife() {
     if (lifeCount == 0) {
-      Get.find<ExtraTimeCounter>().handleLifeTimeout();
+      if (currentQuestion != null && currentHint != null) {
+        Get.find<ExtraTimeCounter>().handleWrongAnswerTimeout(currentQuestion!, currentHint!);
+      }
       lifeCount = 3;
     }
   }

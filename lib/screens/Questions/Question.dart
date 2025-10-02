@@ -181,7 +181,11 @@ class _QuestionState extends State<Question> with WidgetsBindingObserver {
       // HapticFeedback.heavyImpact();
       Vibrate.vibrate();
 
-      extraTime.handleWrongAnswerTimeout(); // Show 1-minute timeout for wrong answer
+      String question = currentQuestionObj[0]['question'];
+      String hint = currentQuestionObj[0]['hint'];
+      
+      lifeCount.setCurrentQuestion(question, hint);
+      extraTime.handleWrongAnswerTimeout(question, hint); // Show 1-minute timeout for wrong answer
 
       lifeCount.removeLife();
       if (lifeCount.lifeCount == 0) {
@@ -206,14 +210,11 @@ class _QuestionState extends State<Question> with WidgetsBindingObserver {
   }
 
   onHintPressed() {
-    if (!takenHint) {
-      extraTime.handleHintTimeout();
-    }
+    extraTime.handleHintTimeout(
+      currentQuestionObj[0]['question'],
+      currentQuestionObj[0]['hint']
+    );
     takenHint = true;
-    CustomAlert(
-        title: "Hint",
-        subTitle: currentQuestionObj[0]['hint'],
-        context: context);
   }
 
   @override
