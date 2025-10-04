@@ -7,8 +7,8 @@ import 'package:stop_watch_timer/stop_watch_timer.dart';
 class ExtraTimeCounter extends GetxController {
   final CountPlayerTime time = Get.put(CountPlayerTime());
 
-  static const int HINT_TIMEOUT_SECONDS = 180; // 3 minutes for hint
-  static const int WRONG_ANSWER_TIMEOUT_SECONDS = 60; // 1 minute for wrong answer
+  static const int HINT_TIMEOUT_SECONDS = 10; // 3 minutes for hint
+  static const int WRONG_ANSWER_TIMEOUT_SECONDS = 10; // 1 minute for wrong answer
 
   showTimeout(int seconds, String question, String hint, bool isHintTimeout) {
     // Stop the main timer
